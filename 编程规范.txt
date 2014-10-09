@@ -1,0 +1,326 @@
+1号店 401 Domain Objective-C Coding Style Guideline
+
+
+0.参考资料:
+·	Apple: Coding Guidelines for Cocoa
+·	Google: Objective-C Style Guide
+1.例子
+a) 以吉明和袁俊的代码作为范例
+头文件
+//
+//  PhoneAppDelegate.h
+//  OneStore
+//
+//  Created by huang jiming on 12-12-24.
+//  Copyright (c) 2012年 OneStore. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "PhoneBaseWindow.h"
+#import "PhoneTBC.h"
+@interface PhoneAppDelegate : OTSBaseAppDelegate<UIApplicationDelegate, UITabBarControllerDelegate>
+
+@property (strong, nonatomic) PhoneTBC *tabBarController;
+
+/**
+ *  功能:返回最顶部的view controller
+ */
+- (PhoneBaseVC *)topVC;
+
+/**
+ *  功能:切换tab到指定索引值
+ */
+- (void)switchTabToIndex:(NSUInteger)aIndex;
+@end
+
+
+//
+//  PhoneAuthorizeVC.h
+//  OneStore
+//
+//  Created by yuan jun on 13-4-19.
+//  Copyright (c) 2013年 OneStore. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+#import "PhoneBaseVC.h"
+
+@interface PhoneAuthorizeVC : PhoneBaseVC {
+    UIButton* AgreeBtn;
+}
+
+@property(nonatomic,retain) NSString* random;
+@property(nonatomic,retain) IBOutlet UIButton* AgreeBtn;
+@end
+
+所有文件都要有版权信息，其中要包含开发者名字
+@interface中定义成员变量， 起始的“{”前要有空格；结束的“}”后面要空一行
+
+.m文件
+//
+//  PhoneAppDelegate.m
+//  OneStore
+//
+//  Created by huang jiming on 12-12-24.
+//  Copyright (c) 2012年 OneStore. All rights reserved.
+//
+
+#import "PhoneAppDelegate.h"
+#import "PhoneBaseNC.h"
+
+@interface PhoneAppDelegate()
+
+@property(nonatomic, strong) UIImageView *launchIv;
+@property(nonatomic, strong) UIView *pushView;
+
+@end
+
+@implementation PhoneAppDelegate
+
+- (BOOL)application:(UIApplication *)application    didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+    [super application:application didFinishLaunchingWithOptions:launchOptions];
+
+    //定位
+//    OTSGPSLocate *locate = [[OTSGPSLocate alloc] init];
+//    [locate startLocate];
+    
+    //消息推送
+    [self registerForRemoteNotifications];
+    
+    self.window = [[PhoneBaseWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];   
+    //启动画面
+    [[PhoneSplash sharedInstance] showSplash];
+    
+    //统计
+    [self initStatistic];
+    
+    return YES;
+}
+
+#pragma mark - 消息推送
+- (void)registerForRemoteNotifications
+{
+    [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge |UIRemoteNotificationTypeSound)];
+}
+
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+{
+    
+}
+
+#pragma mark - 支付提醒
+- (void)initPaymentNotification
+{
+    [[UIApplication sharedApplication] addObserver:self forKeyPath:@"applicationIconBadgeNumber"options:NSKeyValueObservingOptionNew context:NULL];
+}
+#pragma mark - 统计
+- (void)initStatistic
+{
+    //crashlytics闪退报告
+    [OTSStatistic crashStatisticForIphone];
+}
+
+#pragma mark - GlobalValue
+- (void)initGlobalValue
+{
+    
+}
+/**
+ *  功能:tab切换时刷新root vc
+ */
+- (void)updateWhenTabDidSwitchToIndex:(NSUInteger)aIndex
+{
+    switch (aIndex) {
+        case 0: { // 首页
+            if (self.tabBarController.lastSelectedIndex == 0) {
+                [self.homePage updateHomePage];
+            } else {
+                
+            }
+            break;
+        }
+        case 1: { // 分类
+            if (self.tabBarController.lastSelectedIndex == 1) {
+                [self.category updateCategory];
+            } else {
+                
+            }
+            break;
+        }
+        case 2: {  //购物车
+            if (self.tabBarController.lastSelectedIndex==2 || self.cart.needUpdate) {
+                [self.cart updateCart];
+            } else {
+                
+            }
+            break;
+        }
+        default:
+            break;
+    }
+}
++ 注意“{”和“}”格式规范
++ if和switch中“(”和 “)”的格式规范
++ 表达式中的空格
++ 均参照以上sample
++ // 前后要有空格
+
+2.空格和格式化
+a) 指针“*”号的位置 
+	如:NSString *varName;
+b) 空格 VS tabs 只允许使用空格,将编辑器设置为1个TAB = 4个字符缩进
+c) 在 - OR + 和返回值之间留1个空格,方法名和第一个参数间不留空格。
+	如: - (void)doSomethingWithString:(NSString *)theString { ... }
+     当参数过长时,每个参数占用一行,以冒号对齐
+	如
+- (void)doSomethingWith:(GTMFoo *)theFoo
+                   rect:(NSRect)theRect
+               interval:(float)theInterval 
+{
+  ...
+}      
+如果方法名比参数名短,每个参数占用一行,至少缩进4个字符,且为垂直对齐(而非使用冒号 对齐)
+	如: 
+- (void)short:(GTMFoo *)theFoo
+          longKeyword:(NSRect)theRect
+    evenLongerKeyword:(float)theInterval
+                error:(NSError **)theError 
+{
+  ...
+}
+d) 方法的调用中参数对其的方式参考c)
+e) Protocols的定义
+@interface MyProtocoledClass : NSObject<NSWindowDelegate> {
+ @private
+  id<MyFancyDelegate> _delegate;
+}
+- (void)setDelegate:(id<MyFancyDelegate>)aDelegate;
+@end
+“<”与类型之前没有空格
+
+3.命名规则
+a) 基本原则是follow  standard Objective-C naming rules
+b) 类名
+类名(及其category name 和 protocal name)的首字母大写,写使用首字母大写的形式 分割单词。（文件夹的首字母也要大写。）
+在面向特定应用的代码中,类名应尽量避免使用前缀,每个类都使用相同的前缀影响可读性。
+在面向多应用的代码中,推荐使用前缀。如:GTMSendMessage 
+c) Category
+// Extending a framework class:
+@interface NSString (GTMStringParsingAdditions)
+- (NSString *)gtm_foobarString;
+@end
+
+// Making your methods and properties private:
+@interface FoobarViewController ()
+@property(nonatomic, retain) NSView *dongleView;
+- (void)performLayout;
+@end
+d) 方法名
+方法名的首字母小写,且使用首字母大写的形式分割单词。方法的参数使用相同的规则。
+getter的方法名和变量名应相同。不允许使用“get”前缀。如:- (id) getDelegate; // 禁止- (id)delegate; // 对头 
+e) 变量名
+变量名应使用容易意会的应用全称,且首字母小写,且使用首字母大写的形式分割单词
+成员变量使用“_”作为前缀(如:“NSString *_varName;”
+（最好不要声明成员变量，可通过property来代替。）
+属性，命名与去掉"_"前缀的成员变量相同，使用@synthesize将二者联系起来。@synthesize可以不写，：）
+常量(#define, enums, const等)使用小写“k”作为前缀,首字母大写来分割单词。如:  kInvalidHandle
+
+4.注释
+a) 函数说明参考吉明的例子
+b) 其他地方采用 //
+
+5.Cocoa and Objective-c特定规则
+a) 自己开发的代码采用ARC,第三方保持其原来的方式
+b) Properties
+@interface MyClass : NSObject
+@property(copy, nonatomic) NSString *name;
+@end
+
+@implementation MyClass
+// No code required for auto-synthesis, else use:
+//   @synthesize name = _name;
+@end
+
+6. 二合一应用补充规范
+1. 所有在common文件夹下的文件，都是可以复用的文件，包括1号店和商城可以公用，iphone和ipad可以公用。
+主要包括：
+（1）Modules。所有建模的东西
+	（a）BaseClass。基础类，包括OTSBaseAppDelegate、OTSBaseVC、OTSBaseView、OTSBaseWindow、OTSBaseTVC
+	（b）BusinessLogics。逻辑部分，所有跟数据相关的东西都放在这里，包括接口的调用、接口返回数据、客户端控制数据都放在这里实现。
+	（c）BusinessModels。所有模型部分，包括VO、trader、GlobalValue都放在这里。
+	（d）Categories。分类，对于iOS框架里的类所写的分类，提供更多的功能供我们使用。
+	（e）Customize。个性化定制的视图，包括page view、浏览器view、search bar、网格view、data view、个性化价格label、可变按钮、个性化百分号label、tab view、组合label、table header view、划掉label。
+	（f）DataCache。数据缓存。主要包括core data、user default两种存储方式的封装。
+	（g）MultiThread。多线程，网络数据的获取，command－request－service－logic，除了logic被单独独立出来放在（b）里，其他部分都在这里。
+	（h）Utility。工具，封装了一个个具有完整功能的工具，像：设备类型获取、定位、本地购物车、登陆、navi动画、统计、省份相关、颜色、alert、字串类型判断工具。
+（2）Connect。连接的部分。
+（3）ThirdPart。第三方framework，或者lib，或开源代码都放在这里。这里都是别人实现的东西，我们拿来为我们所用。
+
+2.所有iphone文件夹下面的都是只在iphone里面实现的部分，ipad文件夹下面都是只是在ipad里面实现的部分。
+主要包括：
+（1）BaseClass。iphone基础类，包括PhoneBaseNC、PhoneBaseTBC、PhoneBaseVC、PhoneBaseView、PhoneBaseWindow、PhoneBaseTVC
+（2）ExpandClass。iphone扩展类。里面的东西都是按照功能点进行的划分，包括：搜索功能、商品列表、团购、tabbar、检查订单相关、购物车、分类、首页、登陆注册、更多、我的帐户、商品相关。
+
+
+要求：
+1.所有涉及到common文件夹里的改动，必须发邮件申请，经过讨论之后方可进行。
+2.命名要遵守规范和约定。
+命名要简洁明了。
+所有可以公用的文件一般都是以OTS开头，所有iphone的文件都以Phone开头，ipad的文件都以Pad开头。
+所有继承view controller的请以xxxVC命名，所有继承table view cell的请以xxxTVC命名，这是约定，便于统一和维护。
+
+3.所有涉及到数据的部分，请尽量不要在view controller里面声明，尽量在logic里面声明。view controller主要负责ui相关的部分以及数据和ui的交互。这样做的好处是，view controller被简化，因为logic可以被1号店和商城公用，区别主要在view controller这块，便于两边转换和修改。
+
+
+4.所有文件里声明的变量和函数，都必须加上注释。对于函数的注释，必须写明函数的功能，参数的说明，以及返回值的说明。
+
+
+5.尽量封装。不要全都在一个文件里面实现，可以单独提出来的部分尽量提出来进行封装。也可以实现代码的复用，降低程序的耦合度，提高封装和独立性。
+
+
+7. Code Review Check List
+1.基本实现逻辑是否合理。
+
+2.是否存在考虑不全或遗漏的地方。
+
+3.是否存在特殊情况未考虑到的。
+
+4.是否会对其他功能产生影响。
+
+5.是否有内存管理方面的问题。
+
+6.是否有良好的封装性。
+独立的功能是否单独封装起来。
+每个文件的行数。
+每个函数的行数。
+
+
+7.注释：
+是否有足够的注释。（包括每个文件的功能注释和每个方法的注释，每个成员变量的注释）
+注释是否清晰。
+复杂的分支流程是否有注释。
+
+
+8.命名是否规范。（包括每个文件的命名和每个方法的命名和每个成员变量的命名）
+
+
+9.代码结构是否清晰
+接口调用、逻辑以及数据相关的是否放入logic。
+
+10.是否消除所有的warning
+
+11.程序中是否存在复杂的语句。
+
+12.对于会造成crash的nil传参，是否有空指针判断。
+
+
+13.每个if，else逻辑最后是否都有esle
+
+
+14.变量相等的判断是否规范。（特别需要注意浮点数的判断）
+
+15.if语句中是否规范（BOOL，指针，int，float）
+
+
+16.是否有修改地层的代码逻辑及如何修改的。
